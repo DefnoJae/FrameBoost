@@ -5,7 +5,7 @@ $ui.register(function (ctx) {
   var config = ctx.fieldRef(configFor("motion"));
   var status = "Built-in MpvCore: paste the configuration below into Custom MPV Options.";
   var tray = ctx.newTray({
-    iconUrl: "https://raw.githubusercontent.com/DefnoJae/FrameBoost/main/assets/icon.svg",
+    iconUrl: "https://raw.githubusercontent.com/DefnoJae/FrameBoost/codex/frameboost-first-version/assets/icon.svg",
     withContent: true,
     width: "430px",
   });

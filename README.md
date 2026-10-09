@@ -15,10 +15,12 @@ Experimental 60 FPS playback tools for **Seanime Denshi 3.10.3**.
 In Seanime's Extensions screen, add this manifest URL:
 
 ```text
-https://raw.githubusercontent.com/DefnoJae/FrameBoost/main/Manifest.json
+https://raw.githubusercontent.com/DefnoJae/FrameBoost/codex/frameboost-first-version/Manifest.json
 ```
 
 Enable the plugin and grant its playback permission. Open FrameBoost's tray icon.
+
+The preview manifest deliberately points to its development branch. Seanime re-fetches `manifestURI` when installing; pointing a preview manifest to `main` can install an older release instead. Verify the installed version is **0.1.2**. If it still shows 0.1.0, uninstall FrameBoost and reinstall from the URL above.
 
 ## Built-in Denshi player
 
