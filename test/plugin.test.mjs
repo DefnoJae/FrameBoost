@@ -93,12 +93,13 @@ test('disable when already off makes no mutation', () => {
 test('distributed manifest contains the isolated-VM-safe payload', () => {
   const manifest = JSON.parse(readFileSync(new URL('Manifest.json', root), 'utf8'));
   assert.equal(manifest.payload, source);
-  assert.equal(manifest.version, '0.1.3');
+  const packageInfo = JSON.parse(readFileSync(new URL('package.json', root), 'utf8'));
+  assert.equal(manifest.version, packageInfo.version);
 });
 
-test('preview installation and resources stay on the same branch', () => {
+test('release installation and resources stay on main', () => {
   const manifest = JSON.parse(readFileSync(new URL('Manifest.json', root), 'utf8'));
-  const branchBase = 'https://raw.githubusercontent.com/DefnoJae/FrameBoost/codex/frameboost-first-version/';
+  const branchBase = 'https://raw.githubusercontent.com/DefnoJae/FrameBoost/main/';
   assert.equal(manifest.manifestURI, branchBase + 'Manifest.json');
   assert.equal(manifest.icon, branchBase + 'assets/icon.svg');
   assert.ok(manifest.payload.includes(branchBase + 'assets/icon.svg'));
