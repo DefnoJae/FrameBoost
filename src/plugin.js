@@ -3,7 +3,7 @@ $ui.register(function (ctx) {
   /* FRAMEBOOST_PRESETS */
   var selected = ctx.fieldRef("motion");
   var config = ctx.fieldRef(configFor("motion"));
-  var status = "Built-in MpvCore: paste the configuration below into Custom MPV Options.";
+  var status = "Built-in MpvCore: use Custom MPV Options. HTML5 VideoCore requires the custom Denshi build.";
   var tray = ctx.newTray({
     iconUrl: "https://raw.githubusercontent.com/DefnoJae/FrameBoost/main/assets/icon.svg",
     withContent: true,
@@ -64,11 +64,16 @@ $ui.register(function (ctx) {
     tray.close();
   });
 
+  tray.onOpen(function () { tray.update(); });
+
   tray.render(function () {
+    var external = ctx.mpv.getConnection();
+    var externalConnected = !!external && !external.isClosed();
     // Component factories return descriptors; render must return their tree.
     return tray.stack({ gap: 3, items: [
       tray.text("FrameBoost", { style: { fontSize: "20px", fontWeight: "700" } }),
       tray.text("Experimental • Seanime Denshi 3.10.3"),
+      tray.text("HTML5 VideoCore: this installed plugin cannot process its frames. HTML5 blending requires a custom Denshi build. These presets apply to MpvCore and external MPV."),
       tray.select({ label: "Preset", fieldRef: selected, options: Object.keys(presets).map(function (id) {
         return { value: id, label: presets[id].name };
       }) }),
@@ -77,9 +82,9 @@ $ui.register(function (ctx) {
       tray.text("Copy this block into Settings → Video Playback → Custom MPV Options, above any [profile] sections. Add it once. Stop and reopen the video. Remove the block to disable."),
       tray.input({ label: "MPV configuration (select and copy)", fieldRef: config, textarea: true }),
       tray.button({ label: "Open playback settings", onClick: settings }),
-      tray.text("External MPV controls"),
-      tray.button({ label: "Enable selected preset", onClick: enable }),
-      tray.button({ label: "Disable FrameBoost", onClick: disable }),
+      tray.text(externalConnected ? "External MPV connected" : "External MPV disconnected — controls unavailable for built-in players"),
+      tray.button({ label: "Enable in external MPV", onClick: enable, disabled: !externalConnected }),
+      tray.button({ label: "Disable in external MPV", onClick: disable, disabled: !externalConnected }),
       tray.text(status),
     ] });
   });

@@ -25,7 +25,7 @@ function setup({ connected = true, supported = true, filters = [{ name: 'scale',
     assert.ok(rendered && rendered.type, 'Tray render must return a component descriptor');
     for (const child of rendered.props.items) assert.ok(child && child.type, 'Every child needs a component type');
   }
-  const tray = { close() {}, update() { render(); }, render(fn) { renderFn = fn; render(); } };
+  const tray = { close() {}, onOpen() {}, update() { render(); }, render(fn) { renderFn = fn; render(); } };
   for (const name of ['text', 'input', 'button', 'select', 'stack']) tray[name] = (props, extra) => ({
     type: name, props: typeof props === 'string' ? { text: props, ...extra } : props,
   });
@@ -108,11 +108,20 @@ test('release installation and resources stay on main', () => {
 test('tray returns a component tree with controls and updates its status', () => {
   const s = setup();
   assert.equal(s.tree().type, 'stack');
-  assert.equal(s.tree().props.items.length, 12);
+  assert.equal(s.tree().props.items.length, 13);
   assert.equal(s.tree().props.items.filter(c => c.type === 'button').length, 3);
   assert.equal(s.tree().props.items.find(c => c.type === 'input').props.textarea, true);
   s.handlers['frameboost-enable']();
   assert.match(s.tree().props.items.at(-1).props.text, /filter attached/);
   s.handlers['frameboost-disable']();
   assert.match(s.tree().props.items.at(-1).props.text, /is off/);
+});
+
+test('disconnected MPV disables live controls and explains HTML5 requirements', () => {
+  const s = setup({ connected: false });
+  const items = s.tree().props.items;
+  const buttons = items.filter(c => c.type === 'button' && c.props.onClick !== 'frameboost-settings');
+  assert.equal(buttons.length, 2);
+  assert.ok(buttons.every(c => c.props.disabled === true));
+  assert.ok(items.some(c => c.props.text?.includes('HTML5 blending requires a custom Denshi build')));
 });
