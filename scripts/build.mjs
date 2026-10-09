@@ -7,7 +7,7 @@ const base = new URL('../', import.meta.url);
 const ref = 'codex/frameboost-first-version';
 const rawBase = 'https://raw.githubusercontent.com/DefnoJae/FrameBoost/' + ref;
 const manifest = {
-  id: 'frameboost', name: 'FrameBoost', version: '0.1.2',
+  id: 'frameboost', name: 'FrameBoost', version: '0.1.3',
   manifestURI: rawBase + '/Manifest.json',
   language: 'javascript', type: 'plugin', lang: 'en', author: 'DefnoJae',
   description: 'Experimental 60 FPS MPV presets and external MPV filter controls. Built-in MpvCore requires manual configuration.',

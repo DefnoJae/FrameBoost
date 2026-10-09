@@ -19,8 +19,16 @@ function setup({ connected = true, supported = true, filters = [{ name: 'scale',
       if (args[1] === 'remove') filters.splice(filters.findIndex(f => f.label === 'frameboost'), 1);
     },
   };
-  const tray = { close() {}, update() {}, render(fn) { fn(); } };
-  for (const name of ['text', 'input', 'button', 'select']) tray[name] = () => {};
+  let renderFn, rendered;
+  function render() {
+    rendered = renderFn();
+    assert.ok(rendered && rendered.type, 'Tray render must return a component descriptor');
+    for (const child of rendered.props.items) assert.ok(child && child.type, 'Every child needs a component type');
+  }
+  const tray = { close() {}, update() { render(); }, render(fn) { renderFn = fn; render(); } };
+  for (const name of ['text', 'input', 'button', 'select', 'stack']) tray[name] = (props, extra) => ({
+    type: name, props: typeof props === 'string' ? { text: props, ...extra } : props,
+  });
   const ctx = {
     fieldRef(value) { const ref = { current: value, setValue(v) { this.current = v; }, onValueChange(fn) { this.change = fn; } }; refs.push(ref); return ref; },
     newTray: () => tray,
@@ -33,7 +41,7 @@ function setup({ connected = true, supported = true, filters = [{ name: 'scale',
   vm.runInNewContext(source, { $ui: { register: fn => {
     vm.runInNewContext('(' + fn.toString() + ')(__ctx)', { __ctx: ctx });
   } } });
-  return { handlers, calls, messages, filters, refs };
+  return { handlers, calls, messages, filters, refs, tree: () => rendered };
 }
 
 test('built-in configuration requests motion frames and a labeled append', () => {
@@ -85,7 +93,7 @@ test('disable when already off makes no mutation', () => {
 test('distributed manifest contains the isolated-VM-safe payload', () => {
   const manifest = JSON.parse(readFileSync(new URL('Manifest.json', root), 'utf8'));
   assert.equal(manifest.payload, source);
-  assert.equal(manifest.version, '0.1.2');
+  assert.equal(manifest.version, '0.1.3');
 });
 
 test('preview installation and resources stay on the same branch', () => {
@@ -94,4 +102,16 @@ test('preview installation and resources stay on the same branch', () => {
   assert.equal(manifest.manifestURI, branchBase + 'Manifest.json');
   assert.equal(manifest.icon, branchBase + 'assets/icon.svg');
   assert.ok(manifest.payload.includes(branchBase + 'assets/icon.svg'));
+});
+
+test('tray returns a component tree with controls and updates its status', () => {
+  const s = setup();
+  assert.equal(s.tree().type, 'stack');
+  assert.equal(s.tree().props.items.length, 12);
+  assert.equal(s.tree().props.items.filter(c => c.type === 'button').length, 3);
+  assert.equal(s.tree().props.items.find(c => c.type === 'input').props.textarea, true);
+  s.handlers['frameboost-enable']();
+  assert.match(s.tree().props.items.at(-1).props.text, /filter attached/);
+  s.handlers['frameboost-disable']();
+  assert.match(s.tree().props.items.at(-1).props.text, /is off/);
 });

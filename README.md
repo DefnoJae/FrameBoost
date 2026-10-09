@@ -20,7 +20,9 @@ https://raw.githubusercontent.com/DefnoJae/FrameBoost/codex/frameboost-first-ver
 
 Enable the plugin and grant its playback permission. Open FrameBoost's tray icon.
 
-The preview manifest deliberately points to its development branch. Seanime re-fetches `manifestURI` when installing; pointing a preview manifest to `main` can install an older release instead. Verify the installed version is **0.1.2**. If it still shows 0.1.0, uninstall FrameBoost and reinstall from the URL above.
+The preview manifest deliberately points to its development branch. Seanime re-fetches `manifestURI` when installing; pointing a preview manifest to `main` can install an older release instead. Verify the installed version is **0.1.3**. If it still shows 0.1.0, uninstall FrameBoost and reinstall from the URL above.
+
+Version 0.1.3 fixes the tray's empty component type by returning a stack of component descriptors from the render callback. Tests validate the returned tree on first render and after updates.
 
 ## Built-in Denshi player
 
