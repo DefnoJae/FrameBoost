@@ -40,6 +40,10 @@ If playback fails with a missing `minterpolate` filter, this libmpv build lacks 
 
 Configure external MPV in Seanime and start a video there. FrameBoost can attach a labeled filter and remove just that filter. It does not change playback speed or automatically enable itself on future episodes. Attachment is checked through MPV's `vf` property; it does not measure achieved FPS. Hardware decoding that cannot supply CPU frames may need an `auto-copy` configuration in external MPV.
 
+## HTML5 support prototype
+
+An opt-in HTML5 VideoCore frame-blending backend is available in `html5/`. It requires a source integration and custom Denshi build; updating the ordinary FrameBoost plugin does not enable it in official Denshi. See [HTML5 setup and limitations](html5/README.md). This first renderer is frame blending, not motion-estimated interpolation.
+
 ## Development and validation
 
 Requires Node.js 20+. No dependencies.
