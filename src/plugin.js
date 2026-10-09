@@ -1,5 +1,6 @@
-// Appended after presets.js by scripts/build.mjs. Uses Seanime 3.10.3 public APIs.
+// Seanime serializes this callback into a separate UI runtime.
 $ui.register(function (ctx) {
+  /* FRAMEBOOST_PRESETS */
   var selected = ctx.fieldRef("motion");
   var config = ctx.fieldRef(configFor("motion"));
   var status = "Built-in MpvCore: paste the configuration below into Custom MPV Options.";

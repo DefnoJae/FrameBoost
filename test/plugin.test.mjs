@@ -3,10 +3,10 @@ import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import { readFileSync } from 'node:fs';
 import { configFor, filterSpec } from '../src/presets.js';
+import { buildPayload } from '../scripts/payload.mjs';
 
 const root = new URL('../', import.meta.url);
-const source = readFileSync(new URL('src/presets.js', root), 'utf8').replace(/^export /gm, '')
-  + '\n' + readFileSync(new URL('src/plugin.js', root), 'utf8');
+const source = await buildPayload();
 
 function setup({ connected = true, supported = true, filters = [{ name: 'scale', label: 'existing' }] } = {}) {
   const handlers = {}, calls = [], messages = [], refs = [];
@@ -29,7 +29,10 @@ function setup({ connected = true, supported = true, filters = [{ name: 'scale',
     toast: { error: m => messages.push(m), info: m => messages.push(m) },
     screen: { navigateTo() {} },
   };
-  vm.runInNewContext(source, { $ui: { register: fn => fn(ctx) } });
+  // Match Seanime's serialization into a separate VM without loader globals.
+  vm.runInNewContext(source, { $ui: { register: fn => {
+    vm.runInNewContext('(' + fn.toString() + ')(__ctx)', { __ctx: ctx });
+  } } });
   return { handlers, calls, messages, filters, refs };
 }
 
@@ -77,4 +80,10 @@ test('disable when already off makes no mutation', () => {
   const s = setup();
   s.handlers['frameboost-disable']();
   assert.equal(s.calls.length, 0);
+});
+
+test('distributed manifest contains the isolated-VM-safe payload', () => {
+  const manifest = JSON.parse(readFileSync(new URL('Manifest.json', root), 'utf8'));
+  assert.equal(manifest.payload, source);
+  assert.equal(manifest.version, '0.1.1');
 });

@@ -41,10 +41,12 @@ Configure external MPV in Seanime and start a video there. FrameBoost can attach
 Requires Node.js 20+. No dependencies.
 
 ```sh
-npm test
 npm run build
+npm test
 ```
 
 `Manifest.json` embeds the payload; rebuild it after editing `src/`. Tests exercise the actual plugin callbacks in a mock of Seanime's API, including disconnected players, unsupported filters, duplicate activation, and preserving other filters. Live Denshi playback and hardware performance still need validation.
+
+Version 0.1.1 fixes startup in Seanime's separate UI runtime. Preset helpers are embedded inside the registered callback; tests serialize that callback into a fresh VM just as Seanime does. Reload or reinstall the updated manifest if version 0.1.0 reports `configFor is not defined`.
 
 Implementation references: [Seanime 3.10.3 source](https://github.com/5rahim/seanime/tree/v3.10.3), [MPV filters](https://mpv.io/manual/stable/#video-filters), [FFmpeg minterpolate](https://ffmpeg.org/ffmpeg-filters.html#minterpolate).
