@@ -1,10 +1,11 @@
-// Appended after presets.js by scripts/build.mjs. Uses Seanime 3.10.3 public APIs.
+// Seanime serializes this callback into a separate UI runtime.
 $ui.register(function (ctx) {
+  /* FRAMEBOOST_PRESETS */
   var selected = ctx.fieldRef("motion");
   var config = ctx.fieldRef(configFor("motion"));
   var status = "Built-in MpvCore: paste the configuration below into Custom MPV Options.";
   var tray = ctx.newTray({
-    iconUrl: "https://raw.githubusercontent.com/DefnoJae/FrameBoost/main/assets/icon.svg",
+    iconUrl: "https://raw.githubusercontent.com/DefnoJae/FrameBoost/codex/frameboost-first-version/assets/icon.svg",
     withContent: true,
     width: "430px",
   });
@@ -64,19 +65,22 @@ $ui.register(function (ctx) {
   });
 
   tray.render(function () {
-    tray.text("FrameBoost", { style: { fontSize: "20px", fontWeight: "700" } });
-    tray.text("Experimental • Seanime Denshi 3.10.3");
-    tray.select({ label: "Preset", fieldRef: selected, options: Object.keys(presets).map(function (id) {
-      return { value: id, label: presets[id].name };
-    }) });
-    tray.text(getPreset(selected.current).description);
-    tray.text("Built-in MpvCore setup");
-    tray.text("Copy this block into Settings → Video Playback → Custom MPV Options, above any [profile] sections. Add it once. Stop and reopen the video. Remove the block to disable.");
-    tray.input({ label: "MPV configuration (select and copy)", fieldRef: config, textarea: true });
-    tray.button({ label: "Open playback settings", onClick: settings });
-    tray.text("External MPV controls");
-    tray.button({ label: "Enable selected preset", onClick: enable });
-    tray.button({ label: "Disable FrameBoost", onClick: disable });
-    tray.text(status);
+    // Component factories return descriptors; render must return their tree.
+    return tray.stack({ gap: 3, items: [
+      tray.text("FrameBoost", { style: { fontSize: "20px", fontWeight: "700" } }),
+      tray.text("Experimental • Seanime Denshi 3.10.3"),
+      tray.select({ label: "Preset", fieldRef: selected, options: Object.keys(presets).map(function (id) {
+        return { value: id, label: presets[id].name };
+      }) }),
+      tray.text(getPreset(selected.current).description),
+      tray.text("Built-in MpvCore setup"),
+      tray.text("Copy this block into Settings → Video Playback → Custom MPV Options, above any [profile] sections. Add it once. Stop and reopen the video. Remove the block to disable."),
+      tray.input({ label: "MPV configuration (select and copy)", fieldRef: config, textarea: true }),
+      tray.button({ label: "Open playback settings", onClick: settings }),
+      tray.text("External MPV controls"),
+      tray.button({ label: "Enable selected preset", onClick: enable }),
+      tray.button({ label: "Disable FrameBoost", onClick: disable }),
+      tray.text(status),
+    ] });
   });
 });

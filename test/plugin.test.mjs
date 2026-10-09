@@ -3,10 +3,10 @@ import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import { readFileSync } from 'node:fs';
 import { configFor, filterSpec } from '../src/presets.js';
+import { buildPayload } from '../scripts/payload.mjs';
 
 const root = new URL('../', import.meta.url);
-const source = readFileSync(new URL('src/presets.js', root), 'utf8').replace(/^export /gm, '')
-  + '\n' + readFileSync(new URL('src/plugin.js', root), 'utf8');
+const source = await buildPayload();
 
 function setup({ connected = true, supported = true, filters = [{ name: 'scale', label: 'existing' }] } = {}) {
   const handlers = {}, calls = [], messages = [], refs = [];
@@ -19,8 +19,16 @@ function setup({ connected = true, supported = true, filters = [{ name: 'scale',
       if (args[1] === 'remove') filters.splice(filters.findIndex(f => f.label === 'frameboost'), 1);
     },
   };
-  const tray = { close() {}, update() {}, render(fn) { fn(); } };
-  for (const name of ['text', 'input', 'button', 'select']) tray[name] = () => {};
+  let renderFn, rendered;
+  function render() {
+    rendered = renderFn();
+    assert.ok(rendered && rendered.type, 'Tray render must return a component descriptor');
+    for (const child of rendered.props.items) assert.ok(child && child.type, 'Every child needs a component type');
+  }
+  const tray = { close() {}, update() { render(); }, render(fn) { renderFn = fn; render(); } };
+  for (const name of ['text', 'input', 'button', 'select', 'stack']) tray[name] = (props, extra) => ({
+    type: name, props: typeof props === 'string' ? { text: props, ...extra } : props,
+  });
   const ctx = {
     fieldRef(value) { const ref = { current: value, setValue(v) { this.current = v; }, onValueChange(fn) { this.change = fn; } }; refs.push(ref); return ref; },
     newTray: () => tray,
@@ -29,8 +37,11 @@ function setup({ connected = true, supported = true, filters = [{ name: 'scale',
     toast: { error: m => messages.push(m), info: m => messages.push(m) },
     screen: { navigateTo() {} },
   };
-  vm.runInNewContext(source, { $ui: { register: fn => fn(ctx) } });
-  return { handlers, calls, messages, filters, refs };
+  // Match Seanime's serialization into a separate VM without loader globals.
+  vm.runInNewContext(source, { $ui: { register: fn => {
+    vm.runInNewContext('(' + fn.toString() + ')(__ctx)', { __ctx: ctx });
+  } } });
+  return { handlers, calls, messages, filters, refs, tree: () => rendered };
 }
 
 test('built-in configuration requests motion frames and a labeled append', () => {
@@ -77,4 +88,30 @@ test('disable when already off makes no mutation', () => {
   const s = setup();
   s.handlers['frameboost-disable']();
   assert.equal(s.calls.length, 0);
+});
+
+test('distributed manifest contains the isolated-VM-safe payload', () => {
+  const manifest = JSON.parse(readFileSync(new URL('Manifest.json', root), 'utf8'));
+  assert.equal(manifest.payload, source);
+  assert.equal(manifest.version, '0.1.3');
+});
+
+test('preview installation and resources stay on the same branch', () => {
+  const manifest = JSON.parse(readFileSync(new URL('Manifest.json', root), 'utf8'));
+  const branchBase = 'https://raw.githubusercontent.com/DefnoJae/FrameBoost/codex/frameboost-first-version/';
+  assert.equal(manifest.manifestURI, branchBase + 'Manifest.json');
+  assert.equal(manifest.icon, branchBase + 'assets/icon.svg');
+  assert.ok(manifest.payload.includes(branchBase + 'assets/icon.svg'));
+});
+
+test('tray returns a component tree with controls and updates its status', () => {
+  const s = setup();
+  assert.equal(s.tree().type, 'stack');
+  assert.equal(s.tree().props.items.length, 12);
+  assert.equal(s.tree().props.items.filter(c => c.type === 'button').length, 3);
+  assert.equal(s.tree().props.items.find(c => c.type === 'input').props.textarea, true);
+  s.handlers['frameboost-enable']();
+  assert.match(s.tree().props.items.at(-1).props.text, /filter attached/);
+  s.handlers['frameboost-disable']();
+  assert.match(s.tree().props.items.at(-1).props.text, /is off/);
 });

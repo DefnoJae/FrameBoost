@@ -15,10 +15,14 @@ Experimental 60 FPS playback tools for **Seanime Denshi 3.10.3**.
 In Seanime's Extensions screen, add this manifest URL:
 
 ```text
-https://raw.githubusercontent.com/DefnoJae/FrameBoost/main/Manifest.json
+https://raw.githubusercontent.com/DefnoJae/FrameBoost/codex/frameboost-first-version/Manifest.json
 ```
 
 Enable the plugin and grant its playback permission. Open FrameBoost's tray icon.
+
+The preview manifest deliberately points to its development branch. Seanime re-fetches `manifestURI` when installing; pointing a preview manifest to `main` can install an older release instead. Verify the installed version is **0.1.3**. If it still shows 0.1.0, uninstall FrameBoost and reinstall from the URL above.
+
+Version 0.1.3 fixes the tray's empty component type by returning a stack of component descriptors from the render callback. Tests validate the returned tree on first render and after updates.
 
 ## Built-in Denshi player
 
@@ -36,15 +40,21 @@ If playback fails with a missing `minterpolate` filter, this libmpv build lacks 
 
 Configure external MPV in Seanime and start a video there. FrameBoost can attach a labeled filter and remove just that filter. It does not change playback speed or automatically enable itself on future episodes. Attachment is checked through MPV's `vf` property; it does not measure achieved FPS. Hardware decoding that cannot supply CPU frames may need an `auto-copy` configuration in external MPV.
 
+## HTML5 support prototype
+
+An opt-in HTML5 VideoCore frame-blending backend is available in `html5/`. It requires a source integration and custom Denshi build; updating the ordinary FrameBoost plugin does not enable it in official Denshi. See [HTML5 setup and limitations](html5/README.md). This first renderer is frame blending, not motion-estimated interpolation.
+
 ## Development and validation
 
 Requires Node.js 20+. No dependencies.
 
 ```sh
-npm test
 npm run build
+npm test
 ```
 
 `Manifest.json` embeds the payload; rebuild it after editing `src/`. Tests exercise the actual plugin callbacks in a mock of Seanime's API, including disconnected players, unsupported filters, duplicate activation, and preserving other filters. Live Denshi playback and hardware performance still need validation.
+
+Version 0.1.1 fixes startup in Seanime's separate UI runtime. Preset helpers are embedded inside the registered callback; tests serialize that callback into a fresh VM just as Seanime does. Reload or reinstall the updated manifest if version 0.1.0 reports `configFor is not defined`.
 
 Implementation references: [Seanime 3.10.3 source](https://github.com/5rahim/seanime/tree/v3.10.3), [MPV filters](https://mpv.io/manual/stable/#video-filters), [FFmpeg minterpolate](https://ffmpeg.org/ffmpeg-filters.html#minterpolate).
