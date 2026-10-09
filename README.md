@@ -1,6 +1,6 @@
 # FrameBoost
 
-Experimental 60 FPS playback tools for **Seanime Denshi 3.10.3**.
+Experimental 60/144 FPS MPV playback tools for **Seanime Denshi 3.10.3**.
 
 ## What works in this first version
 
@@ -20,7 +20,9 @@ https://raw.githubusercontent.com/DefnoJae/FrameBoost/main/Manifest.json
 
 Enable the plugin and grant its playback permission. Open FrameBoost's tray icon.
 
-Releases are pushed directly to `main`, with the generated manifest updated on every release. Verify the installed version is **0.1.5**. If you installed from the former preview branch, reinstall using the URL above so future updates follow `main`.
+Releases are pushed directly to `main`, with the generated manifest updated on every release. Verify the installed version is **0.1.6**. If you installed from the former preview branch, reinstall using the URL above so future updates follow `main`.
+
+Version 0.1.6 adds optional 144 FPS blending and motion-interpolation presets for 144 Hz displays. The default remains 60 FPS. Replace your existing FrameBoost configuration block instead of appending another one, then stop and reopen playback. Higher output FPS does not guarantee smoother motion: blending only mixes images, and a rising output-drop count indicates the player is not presenting every generated frame. Compare drop counts over equal fresh sessions rather than treating a cumulative count as a measured drop rate. Motion interpolation creates estimated motion but has a higher CPU cost.
 
 Version 0.1.5 explains the HTML5 custom-build requirement directly in the tray and disables external MPV controls when no external connection exists. They cannot activate interpolation in either built-in player.
 

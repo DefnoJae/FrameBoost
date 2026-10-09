@@ -125,3 +125,20 @@ test('disconnected MPV disables live controls and explains HTML5 requirements', 
   assert.ok(buttons.every(c => c.props.disabled === true));
   assert.ok(items.some(c => c.props.text?.includes('HTML5 blending requires a custom Denshi build')));
 });
+
+test('144 FPS selection updates built-in config and external filter and status', () => {
+  const s = setup();
+  s.refs[0].current = 'blend144'; s.refs[0].change('blend144');
+  assert.match(s.refs[1].current, /fps=144:mi_mode=blend/);
+  s.handlers['frameboost-enable']();
+  assert.match(s.calls[0][2], /fps=144:mi_mode=blend/);
+  assert.match(s.messages.at(-1), /Target: 144 FPS/);
+  assert.match(configFor('motion144'), /fps=144:mi_mode=mci/);
+});
+
+test('144 presets are distributed and default remains 60 FPS', () => {
+  assert.equal(readFileSync(new URL('presets/blend-144.conf', root), 'utf8'), configFor('blend144'));
+  assert.equal(readFileSync(new URL('presets/motion-144.conf', root), 'utf8'), configFor('motion144'));
+  const s = setup();
+  assert.match(s.refs[1].current, /fps=60:/);
+});

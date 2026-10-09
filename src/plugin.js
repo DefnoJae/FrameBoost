@@ -42,7 +42,7 @@ $ui.register(function (ctx) {
       if (hasFilter(conn)) throw new Error("FrameBoost is already attached. Disable it before changing presets.");
       conn.call("vf", "add", filterSpec(selected.current));
       if (!hasFilter(conn)) throw new Error("MPV did not attach the filter. Check its logs for minterpolate support.");
-      status = "FrameBoost filter attached to external MPV. Target: 60 FPS; real-time performance is not verified.";
+      status = "FrameBoost filter attached to external MPV. Target: " + getPreset(selected.current).fps + " FPS; real-time performance is not verified.";
       ctx.toast.info(status);
       tray.update();
     } catch (error) { fail(error); }

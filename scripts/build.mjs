@@ -1,5 +1,5 @@
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
-import { configFor } from '../src/presets.js';
+import { configFor, presets } from '../src/presets.js';
 import { buildPayload } from './payload.mjs';
 const base = new URL('../', import.meta.url);
 // Releases are pushed directly to main; Seanime re-fetches this URI on install.
@@ -10,7 +10,7 @@ const manifest = {
   id: 'frameboost', name: 'FrameBoost', version: packageInfo.version,
   manifestURI: rawBase + '/Manifest.json',
   language: 'javascript', type: 'plugin', lang: 'en', author: 'DefnoJae',
-  description: 'Experimental 60 FPS MPV presets and external MPV filter controls. Built-in MpvCore requires manual configuration.',
+  description: 'Experimental 60/144 FPS MPV presets and external MPV filter controls. Built-in MpvCore requires manual configuration.',
   icon: rawBase + '/assets/icon.svg',
   website: 'https://github.com/DefnoJae/FrameBoost',
   readme: 'https://github.com/DefnoJae/FrameBoost/blob/' + ref + '/README.md',
@@ -20,5 +20,8 @@ const manifest = {
 };
 await writeFile(new URL('Manifest.json', base), JSON.stringify(manifest, null, 2) + '\n');
 await mkdir(new URL('presets/', base), { recursive: true });
-for (const id of ['motion', 'blend']) await writeFile(new URL('presets/' + id + '-60.conf', base), configFor(id));
+for (const id of Object.keys(presets)) {
+  const name = id.replace(/144$/, '') + '-' + presets[id].fps + '.conf';
+  await writeFile(new URL('presets/' + name, base), configFor(id));
+}
 console.log('Built Manifest.json and MPV presets.');
